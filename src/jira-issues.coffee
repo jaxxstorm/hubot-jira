@@ -70,15 +70,17 @@ module.exports = (robot) ->
           msg.send JSON.parse(body).map (status) ->
             JSON.stringify({name: status.name, description: status.description})
 
-      robot.hear /addlabel (.+) to (.+)/, (msg) ->
-        issue = msg.match[1]
-        label = msg.match[0]
+      robot.hear /jira addlabel (.+) to (.+)/, (msg) ->
+        issue = msg.match[2]
+        label = msg.match[1]
+        msg.send "Adding #{label} to #{issue}"
         robot.http(jiraUrl + "/rest/api/2/issue/#{issue}")
           .auth(auth).get() (err, res, body) ->
-            .header("Content-Type", "application/json").auth(auth).post(JSON.stringify({
-                "fields": { "labels" [ label ] }
-              })) (err, res, body) ->
-                msg.send if res.statusCode == 204 then "Success!" else body
+            robot.http(jiraUrl + "/rest/api/2/issue/#{issue}")
+              .header("Content-Type", "application/json").auth(auth).put(JSON.stringify({
+                update: { labels: [{ add: "#{label}" }] }
+                })) (err, res, body) ->
+                  msg.send if res.statusCode == 204 then "Success!" else body
 
       robot.hear jiraPattern, (msg) ->
         return if msg.message.user.name.match(new RegExp(jiraIgnoreUsers, "gi"))
@@ -106,8 +108,6 @@ module.exports = (robot) ->
                   message += ", rep. by "+json.fields.reporter.displayName
                   if json.fields.fixVersions and json.fields.fixVersions.length > 0
                     message += ', fixVersion: '+json.fields.fixVersions[0].name
-                  else
-                    message += ', fixVersion: NONE'
 
                   msg.send message
 
