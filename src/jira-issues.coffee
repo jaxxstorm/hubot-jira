@@ -70,6 +70,16 @@ module.exports = (robot) ->
           msg.send JSON.parse(body).map (status) ->
             JSON.stringify({name: status.name, description: status.description})
 
+      robot.hear /addlabel (.+) to (.+)/, (msg) ->
+        issue = msg.match[1]
+        label = msg.match[0]
+        robot.http(jiraUrl + "/rest/api/2/issue/#{issue}")
+          .auth(auth).get() (err, res, body) ->
+            .header("Content-Type", "application/json").auth(auth).post(JSON.stringify({
+                "fields": { "labels" [ label ] }
+              })) (err, res, body) ->
+                msg.send if res.statusCode == 204 then "Success!" else body
+
       robot.hear jiraPattern, (msg) ->
         return if msg.message.user.name.match(new RegExp(jiraIgnoreUsers, "gi"))
 
