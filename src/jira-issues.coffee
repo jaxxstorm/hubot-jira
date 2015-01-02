@@ -16,6 +16,7 @@
 # Commands:
 #   hubot move jira <issue ID> to <status> - Changes the status of <issue ID> to <status>
 #   hubot jira status - List the available statuses
+#   hubot jira addlabel <label> to <issue ID> - Add a label to an issue
 #
 # Author:
 #   rustedgrail
